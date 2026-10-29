@@ -1,6 +1,9 @@
-# Downloads licensed Wikimedia Commons photos into photos/ (runs on GitHub's network).
+# Downloads licensed Wikimedia Commons photos (lines "dest|File_name.jpg", separated by ";").
 name: fetch-photos
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      list: {required: true}
 permissions:
   contents: write
 jobs:
@@ -9,23 +12,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Download photos
+        env:
+          LIST: ${{ inputs.list }}
         run: |
           set -euo pipefail
-          mkdir -p photos/ep01
-          while read -r name file; do
-            curl -fsSL -A "OffDutyArchive/0.1" -o "photos/ep01/${name}.jpg" \
-              "https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=1600"
-          done <<'LIST'
-          slide_01 Millennium_Tower_San_Francisco_2021.jpg
-          slide_02 Millennium_Tower_San_Francisco_July_2008.jpg
-          slide_04 Millennium_Tower_adding_pile_section_1.agr.jpg
-          slide_05 Millennium_Tower_and_pile_installation.agr.jpg
-          LIST
-          ls -la photos/ep01
+          IFS=';' read -ra ITEMS <<< "$LIST"
+          for item in "${ITEMS[@]}"; do
+            dest="${item%%|*}"; file="${item#*|}"
+            mkdir -p "$(dirname "photos/$dest")"
+            curl -fsSL -A "ConcreteArchive/0.1" -o "photos/$dest" \
+              "https://commons.wikimedia.org/wiki/Special:FilePath/$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))' "$file")?width=1600"
+          done
+          ls -laR photos
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898599+github-actions[bot]@users.noreply.github.com"
           git add photos
-          git commit -m "Add EP01 source photos from Wikimedia Commons" || echo "nothing to commit"
+          git commit -m "Add source photos from Wikimedia Commons" || echo "nothing to commit"
           git push

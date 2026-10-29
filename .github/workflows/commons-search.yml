@@ -1,0 +1,29 @@
+# Searches Commons for candidate photos (queries separated by "|") and commits research/<name>.json.
+name: commons-search
+on:
+  workflow_dispatch:
+    inputs:
+      name: {required: true}
+      queries: {required: true}
+permissions:
+  contents: write
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Search
+        env:
+          NAME: ${{ inputs.name }}
+          QUERIES: ${{ inputs.queries }}
+        run: |
+          mkdir -p research
+          IFS='|' read -ra QS <<< "$QUERIES"
+          python3 scripts/commons_search.py "research/${NAME}.json" "${QS[@]}"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898599+github-actions[bot]@users.noreply.github.com"
+          git add research
+          git commit -m "Add Commons search results" || echo "nothing to commit"
+          git push
