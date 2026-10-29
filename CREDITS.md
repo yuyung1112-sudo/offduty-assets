@@ -18,3 +18,9 @@
 - slide_04: Keirn / CC BY-SA 2.0 / Wikimedia Commons
 - slide_05: stepnout / CC BY 2.0 / Wikimedia Commons
 - Slides with text overlay are adapted works (black-and-white, text added).
+
+## EP04 STEEL
+- slide_01, slide_02: Lewis Hine / CC0 / The Met
+- slide_04: Lewis Hine / Public domain / NARA
+- slide_05: Nationaal Archief / No known restrictions
+- slide_06: John Dillenbeck / CC0
