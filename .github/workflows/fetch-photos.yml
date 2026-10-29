@@ -1,0 +1,31 @@
+# Downloads licensed Wikimedia Commons photos into photos/ (runs on GitHub's network).
+name: fetch-photos
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download photos
+        run: |
+          set -euo pipefail
+          mkdir -p photos/ep01
+          while read -r name file; do
+            curl -fsSL -A "OffDutyArchive/0.1" -o "photos/ep01/${name}.jpg" \
+              "https://commons.wikimedia.org/wiki/Special:FilePath/${file}?width=1600"
+          done <<'LIST'
+          slide_01 Millennium_Tower_San_Francisco_2021.jpg
+          slide_02 Millennium_Tower_San_Francisco_July_2008.jpg
+          slide_04 Millennium_Tower_adding_pile_section_1.agr.jpg
+          slide_05 Millennium_Tower_and_pile_installation.agr.jpg
+          LIST
+          ls -la photos/ep01
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898599+github-actions[bot]@users.noreply.github.com"
+          git add photos
+          git commit -m "Add EP01 source photos from Wikimedia Commons" || echo "nothing to commit"
+          git push
